@@ -19,6 +19,9 @@ const validationErrors: Ref<{
 
 const formIsSubmitted: Ref<boolean> = ref(false)
 
+const sendingForm: Ref<boolean> = ref(false)
+const statusCode: Ref<number | undefined> = ref(undefined)
+
 watch(signUpData.value, () => {
 	if (formIsSubmitted.value) {
 		validateForm(signUpData.value)
@@ -43,18 +46,30 @@ const validateForm = (formData: typeof signUpData.value): boolean => {
 	return validationResult.success
 }
 
-const submitForm = () => {
+const submitForm = async () => {
+	sendingForm.value = true
+	statusCode.value = undefined
+
 	formIsSubmitted.value = true
 
 	const validForm = validateForm(signUpData.value)
 
 	if (validForm) {
-		console.log(signUpData)
+		const response = await fetch('/api/sign-up', {
+			method: 'POST',
+			body: JSON.stringify(signUpData.value),
+		})
+
+		statusCode.value = response.status
 	}
+
+	sendingForm.value = false
 }
 </script>
 
 <template>
+	<span v-if="statusCode === 409">User already exists</span>
+	<span v-if="statusCode === 520">Something went wrong</span>
 	<form @submit.prevent="submitForm">
 		<div>
 			<label for="email">Email</label>
@@ -84,7 +99,7 @@ const submitForm = () => {
 		}}</span>
 
 		<div>
-			<button type="submit">Send</button>
+			<button type="submit">{{ sendingForm ? 'Sending' : 'Send' }}</button>
 		</div>
 	</form>
 </template>
