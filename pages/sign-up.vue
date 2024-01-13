@@ -1,26 +1,72 @@
 <script lang="ts" setup>
-const signUpData = ref({
+import { SignUpSchema } from '~/validation/sign-up'
+
+const signUpData: Ref<{
+	email: string
+	password: string
+}> = ref({
 	email: '',
 	password: '',
 })
 
+const validationErrors: Ref<{
+	email: string | undefined
+	password: string | undefined
+}> = ref({
+	email: undefined,
+	password: undefined,
+})
+
+const formIsSubmitted: Ref<boolean> = ref(false)
+
+watch(signUpData.value, () => {
+	if (formIsSubmitted.value) {
+		validateForm(signUpData.value)
+	}
+})
+
+const validateForm = (formData: typeof signUpData.value): boolean => {
+	const validationResult = SignUpSchema.safeParse(formData)
+
+	if (!validationResult.success) {
+		validationErrors.value = {
+			email: validationResult.error.formErrors.fieldErrors.email?.[0],
+			password: validationResult.error.formErrors.fieldErrors.password?.[0],
+		}
+	} else {
+		validationErrors.value = {
+			email: undefined,
+			password: undefined,
+		}
+	}
+
+	return validationResult.success
+}
+
 const submitForm = () => {
-	// Sign up logic
+	formIsSubmitted.value = true
+
+	const validForm = validateForm(signUpData.value)
+
+	if (validForm) {
+		console.log(signUpData)
+	}
 }
 </script>
 
 <template>
-	<!-- Sign up form -->
 	<form @submit.prevent="submitForm">
 		<div>
 			<label for="email">Email</label>
 			<input
 				v-model="signUpData.email"
 				id="email"
-				type="email"
+				type="text"
 				placeholder="Your email..."
 			/>
 		</div>
+
+		<span v-if="validationErrors.email">{{ validationErrors.email }}</span>
 
 		<div>
 			<label for="message">Password</label>
@@ -31,6 +77,10 @@ const submitForm = () => {
 				placeholder="Your password..."
 			/>
 		</div>
+
+		<span v-if="validationErrors.password">{{
+			validationErrors.password
+		}}</span>
 
 		<div>
 			<button type="submit">Send</button>
