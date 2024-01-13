@@ -63,13 +63,14 @@ const submitForm = () => {
 				id="email"
 				type="text"
 				placeholder="Your email..."
+				autocomplete="email"
 			/>
 		</div>
 
 		<span v-if="validationErrors.email">{{ validationErrors.email }}</span>
 
 		<div>
-			<label for="message">Password</label>
+			<label for="password">Password</label>
 			<input
 				v-model="signUpData.password"
 				id="password"
