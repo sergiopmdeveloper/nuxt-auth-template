@@ -7,6 +7,12 @@ import {
 	type SignUpErrors,
 } from '~/validation/sign-up'
 
+const response = await useFetch('/api/check-session-exists')
+
+if (response.status.value === 'success') {
+	navigateTo('/')
+}
+
 const signUpData: Ref<SignUpData> = ref({
 	email: '',
 	password: '',
@@ -55,13 +61,17 @@ const validateForm = (formData: typeof signUpData.value): boolean => {
 /**
  * Submits the form data for sign-up.
  */
-const submitForm = () => {
+const submitForm = async () => {
 	formIsSubmitted.value = true
 
 	const validForm = validateForm(signUpData.value)
 
 	if (validForm) {
-		signUp(signUpData.value)
+		const response = await signUp(signUpData.value)
+
+		if (response.status === 201) {
+			window.location.reload() // Fix error when using navigateTo
+		}
 	}
 }
 </script>
